@@ -7,12 +7,16 @@ class PhishingMailer < ApplicationMailer
   def campaign_email
     @campaign = params[:campaign]
     @target   = params[:target]
-    @link     = auth_with_token_url(@target.token, host: "localhost", port: 3000)
+    @link     = auth_with_token_url(token: @target.token)
+
+    ct = CampaignTarget.find_by(campaign: @campaign, target: @target)
+    @subject = ct&.personalized_subject.presence || @campaign.email_subject.presence || "Acil Durum: Hesabınızı Doğrulayın"
+    @body    = ct&.personalized_body.presence || @campaign.email_body.presence
 
     mail(
       to:      @target.email,
       from:    @campaign.sender_email,
-      subject: @campaign.email_subject.presence || "Acil Durum: Hesabınızı Doğrulayın"
+      subject: @subject
     )
   end
 end

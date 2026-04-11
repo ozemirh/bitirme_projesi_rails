@@ -23,6 +23,8 @@ Rails uygulamasında birleştirir:
 | View      | ERB + Tailwind CSS (tailwindcss-rails gem) |
 | JS        | Hotwire Turbo + Stimulus (importmap) |
 | Mail      | ActionMailer + letter_opener (dev) |
+| AI        | Gemini API (gemini-ai gem) |
+| Excel     | Roo (Excel parsing) |
 
 ## Kurulum
 
@@ -68,9 +70,12 @@ bin/rails tailwindcss:watch      # stylesheet recompile
 ## Veri modeli
 
 ```
-Campaign  1──*  EmailEvent  *──1  Target
-Campaign  1──*  Credential        Credential *──1 Target
+Campaign  1──*  CampaignTarget  *──1  Target
+Campaign  1──*  EmailEvent       *──1  Target
+Campaign  1──*  Credential       Credential *──1 Target
 ```
+
+- **CampaignTarget** — Her hedefe özel AI tarafından üretilmiş konu ve içeriği saklar.
 
 - **Campaign** — kampanya ayarları + agregat KPI (emails_sent, links_clicked, creds_captured).
 - **Target** — phishing hedefi (öğrenci/personel). Her hedefin tekil `token`'u var.
@@ -94,6 +99,17 @@ Campaign  1──*  Credential        Credential *──1 Target
    - Gerçek `login.microsoftonline.com`'a meta-refresh + JS redirect.
 5. Admin panelindeki KPI'lar (CTR, Data Breach Rate, Credential Submission
    Rate) bu agregatlardan canlı hesaplanır.
+
+## AI & Kişiselleştirme Akışı
+
+Projenin en önemli özelliği, Gemini API kullanarak kişiye özel inandırıcı oltalama mailleri üretmesidir:
+
+1. **Excel Import**: `/admin/campaigns/:id` sayfasından hedef listesi yüklenir.
+   - Sütunlar: `email`, `ad-soyad`, `rol`, `departman`, `arastirma alanlari`, `yayinlar`, `projeler`.
+2. **AI Content Generation**: `AI Mails Oluştur` butonu ile `GeminiService` tetiklenir:
+   - Kişinin akademik geçmişine ve projelerine özel, **Resmi Üniversite Dili** ile Türkçe mail taslağı üretilir.
+   - `CampaignTarget` tablosuna `personalized_subject` ve `personalized_body` olarak kaydedilir.
+3. **Gönderim**: `PhishingMailer` gönderim sırasında eğer hedefe özel AI içeriği varsa onu kullanır, yoksa kampanya varsayılanını gönderir.
 
 ## Seed verisi
 
