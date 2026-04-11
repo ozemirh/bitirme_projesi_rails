@@ -1,29 +1,110 @@
-<div class="flex items-center justify-between mb-6">
-  <div>
-    <h1 class="text-2xl font-bold tracking-tight"><%= @campaign.name %></h1>
-    <p class="text-sm text-slate-400">
-      <%= @campaign.target_group %> · <%= @campaign.prompt_type %> ·
-      <span class="text-xs px-2 py-0.5 rounded-full ml-1
-        <%= @campaign.status == 'sent' ? 'bg-emerald-500/15 text-emerald-300' : 'bg-slate-700 text-slate-300' %>">
-        <%= @campaign.status %>
-      </span>
+<div class="flex items-center justify-between mb-8">
+  <div class="flex flex-col">
+    <div class="flex items-center gap-3">
+        <h1 class="text-3xl font-black tracking-tight text-white uppercase"><%= @campaign.name %></h1>
+        <span class="text-xs px-3 py-1 rounded-lg font-bold tracking-widest uppercase
+            <%= @campaign.status == 'sent' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-slate-700 text-slate-300 border border-slate-600' %>">
+            <%= @campaign.status %>
+        </span>
+    </div>
+    <p class="text-xs text-slate-500 mt-2 flex items-center gap-2">
+      <span class="uppercase tracking-widest font-bold text-slate-400"><%= @campaign.email_language %></span>
+      <span class="opacity-20">•</span>
+      <span class="uppercase tracking-widest font-bold text-slate-400"><%= @campaign.prompt_type %></span>
+      <span class="opacity-20">•</span>
+      <span>Simulated via <%= @campaign.sender_email %></span>
     </p>
   </div>
-  <div class="flex gap-2">
-    <%= link_to "Düzenle", edit_admin_campaign_path(@campaign), class: "text-sm px-4 py-2 rounded-md border border-slate-700" %>
-    <%= button_to "Kampanyayı Gönder", send_now_admin_campaign_path(@campaign),
-          method: :post, class: "text-sm px-4 py-2 rounded-md bg-indigo-600 hover:bg-indigo-500 text-white" %>
+  
+  <div class="flex gap-3">
+    <%= link_to "Edit Campaign", edit_admin_campaign_path(@campaign), class: "text-[10px] font-black tracking-widest px-6 py-3 rounded-xl border border-slate-700 text-slate-400 hover:text-white hover:bg-slate-800 transition-all uppercase" %>
+    
+    <% if @campaign.status == 'draft' %>
+        <%= button_to send_now_admin_campaign_path(@campaign),
+              method: :post, 
+              class: "text-[10px] font-black tracking-widest px-8 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white transition-all shadow-lg shadow-indigo-600/20 uppercase cursor-pointer" do %>
+            Start Simulation
+        <% end %>
+    <% end %>
   </div>
 </div>
 
-<div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-  <%= render "admin/dashboard/kpi", title: "Sent",     value: @campaign.emails_sent %>
-  <%= render "admin/dashboard/kpi", title: "Opened",   value: @campaign.emails_opened %>
-  <%= render "admin/dashboard/kpi", title: "Clicked",  value: @campaign.links_clicked %>
-  <%= render "admin/dashboard/kpi", title: "Captured", value: @campaign.creds_captured, alert: true %>
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+  <%= render "admin/dashboard/kpi", title: "Emails Sent",     value: @campaign.emails_sent %>
+  <%= render "admin/dashboard/kpi", title: "Unique Opens",   value: @campaign.emails_opened %>
+  <%= render "admin/dashboard/kpi", title: "Total Clicks",   value: @campaign.links_clicked %>
+  <%= render "admin/dashboard/kpi", title: "Data Captured", value: @campaign.creds_captured, alert: true %>
 </div>
 
-<div class="rounded-xl bg-slate-900 border border-slate-800 p-6">
-  <h2 class="text-sm font-semibold mb-3">Senaryo</h2>
-  <p class="text-sm text-slate-300 whitespace-pre-wrap"><%= @campaign.scenario_prompt %></p>
+<div class="grid grid-cols-1 gap-6 mb-8">
+    <!-- Active Scenario Box (On Top) -->
+    <div class="rounded-2xl bg-slate-900 border border-slate-800 p-8 shadow-xl">
+        <h2 class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-6 flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" /></svg>
+            Active Simulation Scenario
+        </h2>
+        <div class="relative">
+            <div class="absolute -left-4 top-0 bottom-0 w-1 bg-indigo-600/30 rounded-full"></div>
+            <p class="text-sm text-slate-300 leading-relaxed font-serif italic selection:bg-indigo-500/30">
+                <% if @campaign.use_custom_scenario %>
+                    <%= @campaign.scenario_prompt %>
+                <% else %>
+                    <span class="text-emerald-400 font-bold uppercase tracking-tighter text-[10px] block mb-2">Autonomous AI Mode</span>
+                    The AI independently generates unique administrative topics (IT, Finance, HR, Library) for every recipient in this campaign to maximize diversity and realistic engagement.
+                <% end %>
+            </p>
+        </div>
+    </div>
+
+    <!-- Target Database Table (Below) -->
+    <div class="rounded-2xl bg-slate-900 border border-slate-800 overflow-hidden shadow-xl">
+        <div class="p-6 border-b border-slate-800 bg-slate-800/20 flex items-center justify-between">
+            <h2 class="text-xs font-bold uppercase tracking-widest text-slate-400">Campaign Target Database</h2>
+            <span class="text-[10px] px-3 py-1 rounded-full bg-slate-800 text-slate-500 font-bold border border-slate-700">
+                <%= @campaign.campaign_targets.count %> Recipients
+            </span>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+                <thead class="bg-slate-800/40 text-slate-500 text-[10px] uppercase font-black tracking-[0.2em]">
+                    <tr>
+                        <th class="px-6 py-4">Target Identity</th>
+                        <th class="px-6 py-4">Department / Role</th>
+                        <th class="px-6 py-4">Simulation State</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800/50">
+                    <% @campaign.campaign_targets.each do |ct| %>
+                        <tr class="hover:bg-slate-800/10 transition-colors">
+                            <td class="px-6 py-4">
+                                <div class="font-bold text-slate-200"><%= ct.target.full_name %></div>
+                                <div class="text-[10px] text-slate-500"><%= ct.target.email %></div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="text-xs text-slate-300 font-medium"><%= ct.custom_data['departman'] %></div>
+                                <div class="text-[9px] text-slate-500 uppercase tracking-widest font-bold"><%= ct.custom_data['rol'] %></div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <% events = @campaign.email_events.where(target: ct.target).pluck(:event_type) %>
+                                <div class="flex gap-2">
+                                    <div class="flex flex-col items-center gap-1">
+                                        <span class="w-2 h-2 rounded-full <%= events.include?('sent') ? 'bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]' : 'bg-slate-700' %>"></span>
+                                        <span class="text-[8px] font-bold text-slate-500 uppercase">Sent</span>
+                                    </div>
+                                    <div class="flex flex-col items-center gap-1">
+                                        <span class="w-2 h-2 rounded-full <%= events.include?('opened') ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]' : 'bg-slate-700' %>"></span>
+                                        <span class="text-[8px] font-bold text-slate-500 uppercase">Open</span>
+                                    </div>
+                                    <div class="flex flex-col items-center gap-1">
+                                        <span class="w-2 h-2 rounded-full <%= events.include?('clicked') ? 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]' : 'bg-slate-700' %>"></span>
+                                        <span class="text-[8px] font-bold text-slate-500 uppercase">Click</span>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    <% end %>
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>

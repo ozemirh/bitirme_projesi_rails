@@ -12,6 +12,8 @@ Rails.application.routes.draw do
     resources :campaigns do
       member do
         post :send_now
+        post :import_excel
+        post :generate_ai_content
       end
     end
 

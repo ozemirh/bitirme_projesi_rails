@@ -10,7 +10,20 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_04_11_000004) do
+ActiveRecord::Schema[8.0].define(version: 2026_04_11_000005) do
+  create_table "campaign_targets", force: :cascade do |t|
+    t.integer "campaign_id", null: false
+    t.integer "target_id", null: false
+    t.text "personalized_subject"
+    t.text "personalized_body"
+    t.json "custom_data"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["campaign_id", "target_id"], name: "index_campaign_targets_on_campaign_id_and_target_id", unique: true
+    t.index ["campaign_id"], name: "index_campaign_targets_on_campaign_id"
+    t.index ["target_id"], name: "index_campaign_targets_on_target_id"
+  end
+
   create_table "campaigns", force: :cascade do |t|
     t.string "name", null: false
     t.string "target_group", default: "all"
@@ -69,6 +82,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_04_11_000004) do
     t.index ["token"], name: "index_targets_on_token", unique: true
   end
 
+  add_foreign_key "campaign_targets", "campaigns"
+  add_foreign_key "campaign_targets", "targets"
   add_foreign_key "credentials", "campaigns"
   add_foreign_key "credentials", "targets"
   add_foreign_key "email_events", "campaigns"

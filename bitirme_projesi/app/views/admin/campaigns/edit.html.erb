@@ -1,6 +1,191 @@
 <div class="flex items-center justify-between mb-6">
-  <h1 class="text-2xl font-bold tracking-tight">EDIT CAMPAIGN</h1>
-  <span class="text-xs text-slate-500">#<%= @campaign.id %></span>
+  <div class="flex flex-col">
+    <h1 class="text-2xl font-bold tracking-tight text-white uppercase group">
+      Edit Campaign 
+      <span class="text-indigo-500 opacity-50 group-hover:opacity-100 transition-opacity ml-2">#<%= @campaign.id %></span>
+    </h1>
+    <p class="text-xs text-slate-500 mt-1">Configure your phishing simulation and manage target data.</p>
+  </div>
+  
+  <div class="flex gap-3">
+    <%= link_to admin_campaigns_path, class: "p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-all border border-slate-700" do %>
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+      </svg>
+    <% end %>
+  </div>
 </div>
 
+<!-- Campaign Config Form -->
 <%= render "form", campaign: @campaign %>
+
+<!-- Target Management Section -->
+<div class="mt-12 pt-8 border-t border-slate-800">
+  <div class="flex items-center justify-between mb-8">
+    <div>
+      <h2 class="text-xl font-bold tracking-tight text-white">Target List & AI Personalization</h2>
+      <p class="text-xs text-slate-500 mt-1">Generate and preview personalized AI content for each imported target.</p>
+    </div>
+    
+    <div class="flex gap-3">
+      <%= button_to "GENERATE AI EMAILS", generate_ai_content_admin_campaign_path(@campaign),
+            method: :post, 
+            class: "text-[10px] font-black tracking-widest px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white transition-all shadow-lg shadow-emerald-900/20 cursor-pointer uppercase" %>
+      
+      <%= button_to send_now_admin_campaign_path(@campaign), 
+            method: :post, 
+            class: "text-[10px] font-black tracking-widest px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white transition-all shadow-lg shadow-indigo-900/20 cursor-pointer uppercase",
+            data: { confirm: "Are you sure? This will send emails to ALL targets." } do %>
+        START SIMULATION
+      <% end %>
+    </div>
+  </div>
+
+  <div class="rounded-2xl bg-slate-900 border border-slate-800 overflow-hidden shadow-2xl">
+    <div class="p-6 border-b border-slate-800 bg-slate-800/20 flex items-center justify-between">
+      <h2 class="text-xs font-bold uppercase tracking-widest text-slate-400">Target Database</h2>
+      <span class="text-[10px] py-1 px-3 rounded-full bg-slate-800 text-slate-400 font-bold border border-slate-700">
+        <%= @campaign.campaign_targets.count %> Targets Loaded
+      </span>
+    </div>
+
+    <table class="w-full text-left text-sm border-collapse">
+      <thead class="bg-slate-800/40 text-slate-500 text-[10px] uppercase font-black tracking-[0.2em]">
+        <tr>
+          <th class="px-8 py-4">Name / Identity</th>
+          <th class="px-8 py-4">Organizational Unit</th>
+          <th class="px-8 py-4">AI Subject Line</th>
+          <th class="px-8 py-4">Status</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-800/50">
+        <% if @campaign.campaign_targets.any? %>
+          <% @campaign.campaign_targets.each do |ct| %>
+            <!-- User Row -->
+            <tr class="hover:bg-slate-800/20 transition-colors group">
+              <td class="px-8 py-5">
+                <div class="flex items-center gap-4">
+                  <% if ct.personalized_body.present? %>
+                    <button type="button" 
+                            onclick="const row = document.getElementById('preview-row-<%= ct.id %>'); row.style.display = (row.style.display === 'none' ? 'table-row' : 'none');"
+                            class="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center hover:bg-indigo-500 hover:text-white transition-all cursor-pointer">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                    </button>
+                  <% else %>
+                    <div class="w-10 h-10 rounded-xl bg-slate-800 text-slate-600 flex items-center justify-center border border-slate-700">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.956 9.956 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                      </svg>
+                    </div>
+                  <% end %>
+                  <div>
+                    <div class="font-bold text-slate-200 text-sm tracking-tight"><%= ct.target.full_name %></div>
+                    <div class="text-[11px] text-slate-500 font-medium group-hover:text-slate-400 transition-colors"><%= ct.target.email %></div>
+                  </div>
+                </div>
+              </td>
+              <td class="px-8 py-5">
+                <div class="text-xs text-slate-200 font-medium"><%= ct.custom_data['departman'] %></div>
+                <div class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-0.5"><%= ct.custom_data['rol'] %></div>
+              </td>
+              <td class="px-8 py-5">
+                <% if ct.personalized_subject.present? %>
+                  <div class="text-xs text-indigo-300 truncate max-w-[250px] font-medium" title="<%= ct.personalized_subject %>">
+                    <%= ct.personalized_subject %>
+                  </div>
+                <% else %>
+                  <div class="text-[10px] text-slate-600 italic">Not generated yet</div>
+                <% end %>
+              </td>
+              <td class="px-8 py-5">
+                <% if ct.personalized_body.present? %>
+                  <span class="inline-flex items-center gap-1.5 py-1 px-3 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-black uppercase tracking-widest border border-emerald-500/20">
+                    <span class="w-1 h-1 rounded-full bg-emerald-400"></span>
+                    Ready
+                  </span>
+                <% else %>
+                  <span class="inline-flex items-center gap-1.5 py-1 px-3 rounded-full bg-amber-500/10 text-amber-500 text-[10px] font-black uppercase tracking-widest border border-amber-500/20">
+                    <span class="w-1 h-1 rounded-full bg-amber-500 animate-pulse"></span>
+                    Waiting
+                  </span>
+                <% end %>
+              </td>
+            </tr>
+
+            <!-- Inline Preview Row -->
+            <% if ct.personalized_body.present? %>
+              <tr id="preview-row-<%= ct.id %>" style="display: none;" class="bg-slate-950/50">
+                <td colspan="4" class="px-8 py-8">
+                  <div class="rounded-3xl border border-slate-700 bg-slate-900 overflow-hidden shadow-[0_32px_64px_rgba(0,0,0,0.5)] max-w-4xl mx-auto">
+                    <!-- Email Header Area -->
+                    <div class="px-8 py-5 bg-slate-800/40 border-b border-slate-700 flex justify-between items-center">
+                      <div class="flex items-center gap-3">
+                        <div class="w-2 h-2 rounded-full bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.5)]"></div>
+                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Simulation Email Preview</span>
+                      </div>
+                      <button type="button" 
+                              onclick="document.getElementById('preview-row-<%= ct.id %>').style.display='none';"
+                              class="text-[10px] font-black text-slate-500 hover:text-white uppercase tracking-widest transition-all cursor-pointer px-4 py-2 rounded-xl bg-slate-800/50 border border-slate-700">
+                        Close Preview
+                      </button>
+                    </div>
+
+                    <!-- Inbox Metadata Mockup -->
+                    <div class="px-10 py-6 border-b border-slate-800/50 space-y-2 bg-slate-900/50">
+                      <div class="flex items-baseline gap-4">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest w-12 shrink-0">From</span>
+                        <span class="text-xs text-slate-300 font-medium">Kadir Has University <span class="text-slate-500 ml-1">&lt;noreply@khas.edu.tr&gt;</span></span>
+                      </div>
+                      <div class="flex items-baseline gap-4">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest w-12 shrink-0">Subject</span>
+                        <span class="text-sm font-black text-white selection:bg-indigo-500/30"><%= ct.personalized_subject %></span>
+                      </div>
+                    </div>
+
+                    <!-- High-Fidelity Content Body -->
+                    <div class="px-10 py-12 bg-slate-950/20">
+                      <div class="text-slate-300 text-lg leading-relaxed whitespace-pre-wrap font-serif italic selection:bg-indigo-500/40 text-justify">
+                        <% 
+                           # Safe link detection and highlighting
+                           phishing_link = auth_with_token_url(token: ct.target.token, host: "localhost", port: 3000)
+                           body_html = ct.personalized_body.gsub(phishing_link, "<a href='#{phishing_link}' target='_blank' class='text-indigo-400 underline font-black hover:text-indigo-300 decoration-offset-4'>#{phishing_link}</a>").html_safe
+                        %>
+                        <%= body_html %>
+                      </div>
+                      
+                      <!-- Simulated Signature -->
+                      <div class="mt-12 pt-8 border-t border-slate-800/50 flex items-center gap-4 opacity-50">
+                        <div class="w-10 h-10 rounded-xl bg-indigo-600/20 flex items-center justify-center text-indigo-400 font-black text-xs">KH</div>
+                        <div class="text-[10px] text-slate-500 leading-tight">
+                          <p class="font-bold text-slate-400">Security Administration Office</p>
+                          <p>Kadir Has University Simulation Service</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            <% end %>
+          <% end %>
+        <% else %>
+          <tr>
+            <td colspan="4" class="px-8 py-20 text-center">
+              <div class="max-w-xs mx-auto space-y-3">
+                <div class="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center mx-auto text-slate-600">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                  </svg>
+                </div>
+                <h3 class="text-sm font-bold text-slate-400">Database Empty</h3>
+                <p class="text-xs text-slate-600 leading-relaxed italic">Upload an Excel file in the form above to populate your targets.</p>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>

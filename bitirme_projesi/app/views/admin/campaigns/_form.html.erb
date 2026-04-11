@@ -1,7 +1,7 @@
-<%= form_with model: [:admin, campaign], class: "space-y-6" do |f| %>
+<%= form_with model: [:admin, campaign], class: "space-y-6", local: true, multipart: true do |f| %>
   <% if campaign.errors.any? %>
     <div class="px-4 py-3 rounded-md bg-rose-500/10 border border-rose-500/30 text-rose-300 text-sm">
-      <%= pluralize(campaign.errors.count, "hata") %> var:
+      <%= pluralize(campaign.errors.count, "error") %> found:
       <ul class="list-disc pl-5 mt-2">
         <% campaign.errors.full_messages.each do |m| %><li><%= m %></li><% end %>
       </ul>
@@ -10,62 +10,175 @@
 
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
     <!-- Campaign Settings -->
-    <div class="rounded-xl bg-slate-900 border border-slate-800 p-6">
-      <h2 class="text-lg font-semibold mb-5">Campaign Settings</h2>
+    <div class="rounded-xl bg-slate-900 border border-slate-800 p-6 space-y-6">
+      <div>
+        <h2 class="text-lg font-semibold mb-1">Core Campaign Settings</h2>
+        <p class="text-xs text-slate-500 mb-5">Primary configurations for your phishing simulation.</p>
+      </div>
+
       <div class="space-y-4">
         <div>
-          <%= f.label :name, class: "text-xs uppercase text-slate-400" %>
-          <%= f.text_field :name, class: "mt-1 w-full bg-slate-800 border border-slate-700 rounded-md px-3 py-2 text-sm" %>
+          <%= f.label :name, "Campaign Name", class: "text-xs uppercase text-slate-400 font-bold" %>
+          <%= f.text_field :name, class: "mt-1 w-full bg-slate-800 border border-slate-700 rounded-md px-3 py-2 text-sm text-white focus:border-indigo-500 outline-none transition-all" %>
         </div>
+        
         <div>
-          <%= f.label :target_group, "Target Group", class: "text-xs uppercase text-slate-400" %>
-          <%= f.select :target_group,
-                [["All Students - Undergraduate", "all"], ["All Students - Graduate", "graduate"], ["Staff", "staff"]],
-                {}, class: "mt-1 w-full bg-slate-800 border border-slate-700 rounded-md px-3 py-2 text-sm" %>
+          <%= f.label :sender_email, "Sender Identity (Email)", class: "text-xs uppercase text-slate-400 font-bold" %>
+          <%= f.text_field :sender_email, class: "mt-1 w-full bg-slate-800 border border-slate-700 rounded-md px-3 py-2 text-sm text-white focus:border-indigo-500 outline-none transition-all" %>
         </div>
+
         <div>
-          <%= f.label :sender_email, "Sender", class: "text-xs uppercase text-slate-400" %>
-          <%= f.text_field :sender_email, class: "mt-1 w-full bg-slate-800 border border-slate-700 rounded-md px-3 py-2 text-sm" %>
+          <%= f.label :email_language, "Email Language", class: "text-xs uppercase text-slate-400 font-bold" %>
+          <%= f.select :email_language, 
+                [["English", "English"], ["Turkish", "Turkish"]], 
+                {}, class: "mt-1 w-full bg-slate-800 border border-slate-700 rounded-md px-3 py-2 text-sm text-white focus:border-indigo-500 outline-none transition-all" %>
         </div>
+
         <div>
-          <%= f.label :prompt_type, "Campaign Prompt", class: "text-xs uppercase text-slate-400" %>
+          <%= f.label :prompt_type, "Phishing Hook Strategy", class: "text-xs uppercase text-slate-400 font-bold" %>
           <%= f.select :prompt_type,
-                [["Urgency-based", "urgency"], ["Authority-based", "authority"], ["Curiosity-based", "curiosity"]],
-                {}, class: "mt-1 w-full bg-slate-800 border border-slate-700 rounded-md px-3 py-2 text-sm" %>
+                [["Urgency (Action Required)", "urgency"], ["Authority (Admin Request)", "authority"], ["Curiosity (Internal News)", "curiosity"]],
+                {}, class: "mt-1 w-full bg-slate-800 border border-slate-700 rounded-md px-3 py-2 text-sm text-white focus:border-indigo-500 outline-none transition-all" %>
+        </div>
+      </div>
+
+      <div class="pt-4 border-t border-slate-800">
+        <h2 class="text-sm font-semibold mb-3">Target List & Reference Data</h2>
+        <div class="space-y-4">
+          <div>
+            <%= f.label :file, "Upload Target List (.xlsx)", class: "text-xs uppercase text-slate-400 font-bold" %>
+            <%= f.file_field :file, accept: ".xlsx", class: "block w-full text-xs text-slate-500 mt-1
+              file:mr-4 file:py-2 file:px-4
+              file:rounded-md file:border-0
+              file:text-xs file:font-semibold
+              file:bg-indigo-600 file:text-white
+              hover:file:bg-indigo-500 cursor-pointer" %>
+          </div>
+          
+          <div class="flex gap-6 mt-2">
+            <div class="flex items-center gap-2">
+              <%= f.radio_button :import_mode, "replace", checked: true, class: "w-4 h-4 text-indigo-600 bg-slate-800 border-slate-700" %>
+              <%= f.label :import_mode_replace, "Replace Existing", class: "text-xs text-slate-300" %>
+            </div>
+            <div class="flex items-center gap-2">
+              <%= f.radio_button :import_mode, "append", class: "w-4 h-4 text-indigo-600 bg-slate-800 border-slate-700" %>
+              <%= f.label :import_mode_append, "Append New", class: "text-xs text-slate-300" %>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Scenario + Preview -->
+    <!-- AI Settings -->
     <div class="space-y-6">
       <div class="rounded-xl bg-slate-900 border border-slate-800 p-6">
-        <h2 class="text-lg font-semibold mb-3">Scenario Definition</h2>
-        <%= f.label :scenario_prompt, "AI Scenario Prompt", class: "text-xs uppercase text-slate-400" %>
-        <%= f.text_area :scenario_prompt, rows: 4,
-              class: "mt-1 w-full bg-slate-800 border border-slate-700 rounded-md px-3 py-2 text-sm" %>
+        <div class="flex items-center justify-between mb-5">
+            <h2 class="text-lg font-semibold">Scenario Personality</h2>
+            <div class="flex bg-slate-800 p-1 rounded-lg">
+                <button type="button" 
+                        id="btn-autonomous"
+                        onclick="toggleScenario(false)"
+                        class="text-[10px] font-bold px-3 py-1 rounded-md transition-all">AUTONOMOUS</button>
+                <button type="button" 
+                        id="btn-manual"
+                        onclick="toggleScenario(true)"
+                        class="text-[10px] font-bold px-3 py-1 rounded-md transition-all">MANUAL</button>
+            </div>
+        </div>
+        
+        <%= f.hidden_field :use_custom_scenario, id: "use_custom_scenario_field" %>
+
+        <div id="scenario-manual-section" class="space-y-4 transition-all opacity-0 hidden">
+            <div>
+                <%= f.label :scenario_prompt, "Define Specific Phishing Scenario", class: "text-xs uppercase text-slate-400 font-bold" %>
+                <%= f.text_area :scenario_prompt, rows: 4, placeholder: "e.g. A library fee warning or a system update notice...",
+                    class: "mt-1 w-full bg-slate-800 border border-slate-700 rounded-md px-3 py-2 text-sm text-white focus:border-indigo-500 outline-none transition-all" %>
+            </div>
+        </div>
+
+        <div id="autonomous-info-box" class="p-4 rounded-lg bg-emerald-500/5 border border-emerald-500/20">
+            <p class="text-[11px] text-emerald-400/80 leading-relaxed font-medium">
+                <span class="font-bold flex items-center gap-1 mb-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                    AUTONOMOUS AI MODE ACTIVE
+                </span>
+                The AI will creatively invent realistic university-themed topics (payroll, IT, library, etc.) for each target automatically. No scenario input required.
+            </p>
+        </div>
       </div>
 
-      <div class="rounded-xl bg-slate-800/40 border border-slate-800 p-6">
-        <h2 class="text-lg font-semibold mb-4">AI Generated Email Preview</h2>
-        <div class="text-xs space-y-1 text-slate-400 mb-4">
-          <p><span class="text-slate-200 font-medium">From:</span> Kadir Has University IT &lt;<%= campaign.sender_email %>&gt;</p>
-          <p><span class="text-slate-200 font-medium">To:</span> Student &lt;student@khas.edu.tr&gt;</p>
-          <p><span class="text-slate-200 font-medium">Subject:</span> <%= campaign.email_subject.presence || "Waitlist Verification - Action Required" %></p>
+      <div id="preview-section" class="rounded-xl bg-indigo-600/5 border border-indigo-500/20 p-6 transition-all opacity-0 hidden">
+        <h2 class="text-sm font-bold mb-4 text-indigo-300">Manual Preview Mockup</h2>
+        <div class="text-[10px] space-y-1 text-slate-400 mb-4 bg-slate-950/30 p-3 rounded-lg border border-slate-800">
+          <p><span class="text-slate-300 font-medium w-12 inline-block">From:</span> Faculty Admin &lt;<%= campaign.sender_email %>&gt;</p>
+          <p><span class="text-slate-300 font-medium w-12 inline-block">Subject:</span> [URGENCY] Action Required for Your Account</p>
         </div>
-        <div class="text-sm leading-relaxed space-y-3 text-slate-200">
-          <p>Dear Student,</p>
-          <p>Your course registration for [Course Name] is on hold due to a data discrepancy. You must immediately verify your details on the secure student portal. Failure to complete this by 5:00 PM today will result in your removal from the waitlist...</p>
-        </div>
-        <div class="flex items-center gap-3 mt-4">
-          <span class="inline-block text-xs bg-indigo-600 text-white px-3 py-1.5 rounded">Update Details</span>
-          <span class="text-xs text-slate-500">http://localhost:3000/auth</span>
+        <div class="text-xs leading-relaxed space-y-3 text-slate-400 italic">
+          <p>Your custom scenario will be used as a blueprint to generate highly personalized emails for each target...</p>
         </div>
       </div>
     </div>
   </div>
 
-  <div class="flex justify-end gap-3">
-    <%= link_to "İptal", admin_campaigns_path, class: "text-sm px-4 py-2 rounded-md border border-slate-700 text-slate-300" %>
-    <%= f.submit "Kaydet", class: "text-sm px-4 py-2 rounded-md bg-indigo-600 hover:bg-indigo-500 text-white cursor-pointer" %>
+  <div class="flex justify-end gap-3 pt-4 border-t border-slate-800">
+    <%= link_to "Cancel", admin_campaigns_path, class: "text-xs font-bold px-6 py-2.5 rounded-xl border border-slate-700 text-slate-400 hover:text-white hover:bg-slate-800 transition-all uppercase tracking-widest" %>
+    <%= f.submit campaign.new_record? ? "Create Campaign" : "Update Campaign", class: "text-xs font-bold px-8 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white cursor-pointer transition-all shadow-lg shadow-indigo-600/20 uppercase tracking-widest" %>
   </div>
 <% end %>
+
+<script>
+  function toggleScenario(manual) {
+    const manualSection = document.getElementById('scenario-manual-section');
+    const previewSection = document.getElementById('preview-section');
+    const infoBox = document.getElementById('autonomous-info-box');
+    const field = document.getElementById('use_custom_scenario_field');
+    const btnAuto = document.getElementById('btn-autonomous');
+    const btnManual = document.getElementById('btn-manual');
+
+    if (!manualSection || !btnAuto) return;
+
+    field.value = manual;
+
+    if (manual) {
+      // Manual Mode: Show sections, hide info box
+      manualSection.style.display = 'block';
+      manualSection.classList.remove('opacity-0', 'hidden');
+      manualSection.classList.add('opacity-100');
+      
+      previewSection.style.display = 'block';
+      previewSection.classList.remove('opacity-0', 'hidden');
+      previewSection.classList.add('opacity-100');
+      
+      infoBox.style.display = 'none';
+      
+      btnManual.classList.add('bg-indigo-600', 'text-white');
+      btnManual.classList.remove('text-slate-500');
+      btnAuto.classList.remove('bg-indigo-600', 'text-white');
+      btnAuto.classList.add('text-slate-500');
+    } else {
+      // Autonomous Mode: Hide sections, show info box
+      manualSection.style.display = 'none';
+      previewSection.style.display = 'none';
+      
+      infoBox.style.display = 'block';
+      infoBox.classList.remove('hidden');
+      
+      btnAuto.classList.add('bg-indigo-600', 'text-white');
+      btnAuto.classList.remove('text-slate-500');
+      btnManual.classList.remove('bg-indigo-600', 'text-white');
+      btnManual.classList.add('text-slate-500');
+    }
+  }
+
+  // Use turbo:load for Rails 7+ compatibility
+  document.addEventListener('turbo:load', () => {
+    const isManual = <%= campaign.use_custom_scenario ? 'true' : 'false' %>;
+    toggleScenario(isManual);
+  });
+  
+  // Also run on normal load as fallback
+  document.addEventListener('DOMContentLoaded', () => {
+    const isManual = <%= campaign.use_custom_scenario ? 'true' : 'false' %>;
+    toggleScenario(isManual);
+  });
+</script>

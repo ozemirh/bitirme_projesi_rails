@@ -1,6 +1,8 @@
 class Target < ApplicationRecord
   has_many :email_events, dependent: :destroy
   has_many :credentials,  dependent: :nullify
+  has_many :campaign_targets, dependent: :destroy
+  has_many :campaigns, through: :campaign_targets
 
   GROUPS = %w[undergraduate graduate staff].freeze
 
